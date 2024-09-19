@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calorie Calculator</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
         h2, h3 { text-align: center; color: #333; }
         form { margin-top: 20px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
@@ -13,27 +13,25 @@
         button { background-color: #28a745; color: white; border: none; cursor: pointer; }
         button:hover { background-color: #218838; }
         #result { text-align: center; font-size: 1.5em; color: #333; }
-        .slider-container { margin-bottom: 15px; }
         .footer { text-align: center; margin-top: 40px; font-size: 1.1em; }
         .footer a { color: #007bff; text-decoration: none; }
         .footer a:hover { text-decoration: underline; }
-        .image-container { text-align: center; margin-bottom: 20px; }
-        .image-container img { max-width: 100%; height: auto; }
         .table { width: 100%; margin-top: 20px; border-collapse: collapse; }
         .table th, .table td { padding: 10px; border: 1px solid #ccc; text-align: center; }
         .table th { background-color: #f4f4f4; font-weight: bold; }
+        .body-fat-images { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 20px; }
+        .body-fat-images img { width: 150px; height: auto; cursor: pointer; margin-bottom: 10px; border: 2px solid transparent; }
+        .body-fat-images img.selected { border-color: #28a745; }
     </style>
 </head>
 <body>
 
-    <!-- Header with your name -->
     <h1>Soleafit</h1>
-
     <h2>Calorie Calculator</h2>
 
     <form id="calorie-form">
         <label for="gender">Gender:</label>
-        <select id="gender" onchange="updateImage()">
+        <select id="gender" onchange="showBodyFatImages()">
             <option value="male">Male</option>
             <option value="female">Female</option>
         </select>
@@ -44,11 +42,10 @@
         <label for="weight">Weight (kg):</label>
         <input type="number" id="weight" placeholder="Enter your weight in kg" required>
 
-        <!-- Body Fat Percentage Slider -->
-        <div class="slider-container">
-            <label for="bodyFat">Body Fat Percentage:</label>
-            <input type="range" id="bodyFat" min="5" max="60" value="20" oninput="document.getElementById('fatValue').innerText = this.value + '%'; updateImage()">
-            <p>Selected Body Fat: <span id="fatValue">20%</span></p>
+        <!-- Body Fat Percentage Image Selection -->
+        <div id="bodyFatImagesContainer">
+            <label for="bodyFat">Select Your Body Fat Percentage:</label>
+            <div id="bodyFatImages" class="body-fat-images"></div>
         </div>
 
         <!-- Workout Hours Per Week -->
@@ -83,14 +80,8 @@
         <button type="button" onclick="calculateCalories()">Calculate</button>
     </form>
 
-    <!-- Display Image Based on Body Fat Percentage -->
-    <div class="image-container">
-        <img id="bodyFatImage" src="male-15-17.jpg" alt="Body Fat Image">
-    </div>
-
     <h3 id="result"></h3>
 
-    <!-- Progress Table -->
     <div>
         <h3>Calorie Adjustments</h3>
         <table class="table">
@@ -127,47 +118,25 @@
     </div>
 
     <script>
-        // Function to update the image based on body fat percentage and gender
-        function updateImage() {
-            var gender = document.getElementById('gender').value;
-            var bodyFat = document.getElementById('bodyFat').value;
-            
-            // Determine the range of body fat percentages
-            var imageSrc = "";
+        let selectedBodyFat = 20;
 
-            if (gender === "male") {
-                if (bodyFat <= 14) imageSrc = "male-12-14.jpg";
-                else if (bodyFat <= 17) imageSrc = "male-15-17.jpg";
-                else if (bodyFat <= 20) imageSrc = "male-18-20.jpg";
-                // Add more ranges as necessary
-            } else {
-                if (bodyFat <= 14) imageSrc = "female-12-14.jpg";
-                else if (bodyFat <= 17) imageSrc = "female-15-17.jpg";
-                else if (bodyFat <= 20) imageSrc = "female-18-20.jpg";
-                // Add more ranges as necessary
-            }
+        // Show body fat images based on gender
+        function showBodyFatImages() {
+            const gender = document.getElementById('gender').value;
+            const bodyFatImages = document.getElementById('bodyFatImages');
+            bodyFatImages.innerHTML = ''; // Clear current images
 
-            // Update the image
-            document.getElementById('bodyFatImage').src = imageSrc;
-        }
+            const maleImages = [
+                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8u0GqJpithROiHo_Dkkr3oisEn1tnZ47CbIxroahDPQ8GNuIf', value: 4 },
+                { src: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTOZGLkHOSPD8F_08t-_1j2G4Pzl4Rhna2QF1DaYaFZKcT_Hr5U', value: 7 },
+                { src: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRatRDDbrCPoh9qOg3MMv_ubnljZxaDscHSOltFErjVP2K0tJJB', value: 10 },
+                { src: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTGmvKuRDKkMHkD4Bm7tzhN5M6WDabpEikfeSKj1rv5tauhrVwP', value: 12 },
+                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR59_gJyspt-MOzUx-kte_IJHcbStCHJ5hIgTSM8SwiLz9r0Yjz', value: 15 },
+                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgUI-1I8CO-PBE7k4PWYfbQSBV6id5BZ2yMApnIhxG_skpw-oi', value: 19 },
+                { src: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTzkiSvKZE6YEfT6Wmhl_zXcIPIdr3AOWuGSxgNpvCDdxPSfts9', value: 24 },
+                { src: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcThOh7wywIdzNpQdwnR-HnM7HIumGloJo9l5DavUYJiqOAQN34X', value: 30 },
+                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyqnX10_tQ5YjAhXBcGYbOvqVS8JV1T3xqoiOGhNB4O9QYip6t', value: 40 }
+            ];
 
-        function calculateCalories() {
-            var gender = document.getElementById('gender').value;
-            var age = parseInt(document.getElementById('age').value);
-            var weight = parseInt(document.getElementById('weight').value);
-            var bodyFat = parseFloat(document.getElementById('bodyFat').value);
-            var workoutHours = parseFloat(document.getElementById('workoutHours').value);
-            var stepsPerDay = parseFloat(document.getElementById('stepsPerDay').value);
-            var goal = document.getElementById('goal').value;
-
-            // Combine workout and steps into activity level
-            var activity = (workoutHours + stepsPerDay) / 2;
-
-            // Calculate Lean Body Mass (LBM) and BMR
-            var LBM = weight * (1 - bodyFat / 100);
-            var BMR = 370 + (21.6 * LBM);
-
-            // Calculate TDEE (Total Daily Energy Expenditure)
-            var TDEE = BMR * activity;
-
-            // Adjust T
+            const femaleImages = [
+                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUq91VH_SZFca0TPi
