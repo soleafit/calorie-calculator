@@ -22,6 +22,7 @@
         .body-fat-images { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 20px; }
         .body-fat-images img { width: 150px; height: auto; cursor: pointer; margin-bottom: 10px; border: 2px solid transparent; }
         .body-fat-images img.selected { border-color: #28a745; }
+        .slider-container { margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -47,9 +48,16 @@
             <option value="lbs">lbs</option>
         </select>
 
+        <!-- Body Fat Percentage Slider -->
+        <div class="slider-container">
+            <label for="bodyFat">Body Fat Percentage:</label>
+            <input type="range" id="bodyFat" min="5" max="60" value="20" oninput="document.getElementById('fatValue').innerText = this.value + '%'">
+            <p>Selected Body Fat: <span id="fatValue">20%</span></p>
+        </div>
+
         <!-- Body Fat Percentage Image Selection -->
         <div id="bodyFatImagesContainer">
-            <label for="bodyFat">Select Your Body Fat Percentage:</label>
+            <label for="bodyFatImages">Select Your Body Fat Percentage:</label>
             <div id="bodyFatImages" class="body-fat-images"></div>
         </div>
 
@@ -186,5 +194,4 @@
 
             // Male and Female images with their body fat values
             const maleImages = [
-                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8u0GqJpithROiHo_Dkkr3oisEn1tnZ47CbIxroahDPQ8GNuIf', value: 4 },
-                { src: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTOZ
+                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn
