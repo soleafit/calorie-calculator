@@ -39,8 +39,13 @@
         <label for="age">Age (years):</label>
         <input type="number" id="age" placeholder="Enter your age" required>
 
-        <label for="weight">Weight (kg):</label>
-        <input type="number" id="weight" placeholder="Enter your weight in kg" required>
+        <!-- Weight Input with Unit Switch -->
+        <label for="weight">Weight:</label>
+        <input type="number" id="weight" placeholder="Enter your weight" required>
+        <select id="weight-unit">
+            <option value="kg">kg</option>
+            <option value="lbs">lbs</option>
+        </select>
 
         <!-- Body Fat Percentage Image Selection -->
         <div id="bodyFatImagesContainer">
@@ -80,30 +85,83 @@
         <button type="button" onclick="calculateCalories()">Calculate</button>
     </form>
 
+    <!-- Display Stats -->
     <h3 id="result"></h3>
 
-    <div>
-        <h3>Calorie Adjustments</h3>
+    <div id="stats-container" style="display: none;">
+        <h3>Stats:</h3>
+        <p>Lean Body Mass (LBM): <span id="lbm"></span></p>
+        <p>Basal Metabolic Rate (BMR): <span id="bmr"></span></p>
+        <p>Estimated TDEE: <span id="tdee"></span></p>
+    </div>
+
+    <!-- Calorie Adjustment Tables -->
+    <div id="calorie-tables" style="display: none;">
+        <h3>Calories to lose weight</h3>
         <table class="table">
             <tr>
                 <th>Pace</th>
-                <th>Percentage of Body Weight Change/Week</th>
+                <th>% of Body Weight Change Per Week</th>
                 <th>Calorie Intake</th>
             </tr>
             <tr>
                 <td>Slow</td>
                 <td>0.5%</td>
-                <td id="slow"></td>
+                <td id="loss-slow"></td>
             </tr>
             <tr>
                 <td>Moderate</td>
                 <td>0.75%</td>
-                <td id="moderate"></td>
+                <td id="loss-moderate"></td>
             </tr>
             <tr>
                 <td>Fast</td>
                 <td>1%</td>
-                <td id="fast"></td>
+                <td id="loss-fast"></td>
+            </tr>
+        </table>
+
+        <h3>Calories to gain weight</h3>
+        <table class="table">
+            <tr>
+                <th>Type</th>
+                <th>Estimated Fat Gain</th>
+                <th>Calorie Intake</th>
+            </tr>
+            <tr>
+                <td>Lean Bulk</td>
+                <td>Minimum</td>
+                <td id="gain-lean"></td>
+            </tr>
+            <tr>
+                <td>Standard Bulk</td>
+                <td>Slight</td>
+                <td id="gain-standard"></td>
+            </tr>
+            <tr>
+                <td>Dirty Bulk</td>
+                <td>Moderate</td>
+                <td id="gain-dirty"></td>
+            </tr>
+        </table>
+
+        <h3>Calories to recomp</h3>
+        <table class="table">
+            <tr>
+                <th>Type</th>
+                <th>Calorie Intake</th>
+            </tr>
+            <tr>
+                <td>Standard Recomp</td>
+                <td id="recomp-standard"></td>
+            </tr>
+            <tr>
+                <td>Fat Loss Focus</td>
+                <td id="recomp-fatloss"></td>
+            </tr>
+            <tr>
+                <td>Muscle Gain Focus</td>
+                <td id="recomp-muscle"></td>
             </tr>
         </table>
     </div>
@@ -126,17 +184,7 @@
             const bodyFatImages = document.getElementById('bodyFatImages');
             bodyFatImages.innerHTML = ''; // Clear current images
 
+            // Male and Female images with their body fat values
             const maleImages = [
                 { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8u0GqJpithROiHo_Dkkr3oisEn1tnZ47CbIxroahDPQ8GNuIf', value: 4 },
-                { src: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTOZGLkHOSPD8F_08t-_1j2G4Pzl4Rhna2QF1DaYaFZKcT_Hr5U', value: 7 },
-                { src: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRatRDDbrCPoh9qOg3MMv_ubnljZxaDscHSOltFErjVP2K0tJJB', value: 10 },
-                { src: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTGmvKuRDKkMHkD4Bm7tzhN5M6WDabpEikfeSKj1rv5tauhrVwP', value: 12 },
-                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR59_gJyspt-MOzUx-kte_IJHcbStCHJ5hIgTSM8SwiLz9r0Yjz', value: 15 },
-                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgUI-1I8CO-PBE7k4PWYfbQSBV6id5BZ2yMApnIhxG_skpw-oi', value: 19 },
-                { src: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTzkiSvKZE6YEfT6Wmhl_zXcIPIdr3AOWuGSxgNpvCDdxPSfts9', value: 24 },
-                { src: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcThOh7wywIdzNpQdwnR-HnM7HIumGloJo9l5DavUYJiqOAQN34X', value: 30 },
-                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyqnX10_tQ5YjAhXBcGYbOvqVS8JV1T3xqoiOGhNB4O9QYip6t', value: 40 }
-            ];
-
-            const femaleImages = [
-                { src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUq91VH_SZFca0TPi
+                { src: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTOZ
