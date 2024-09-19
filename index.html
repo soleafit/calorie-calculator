@@ -13,6 +13,7 @@
         button { background-color: #28a745; color: white; border: none; cursor: pointer; }
         button:hover { background-color: #218838; }
         #result { text-align: center; font-size: 1.5em; color: #333; }
+        #lean-mass { display: none; } /* Hide lean mass input by default */
     </style>
 </head>
 <body>
@@ -34,6 +35,18 @@
 
         <label for="height">Height (cm):</label>
         <input type="number" id="height" placeholder="Enter your height in cm" required>
+
+        <label for="formula">Formula:</label>
+        <select id="formula" onchange="showLeanMassInput()">
+            <option value="mifflin">Mifflin-St Jeor</option>
+            <option value="harris">Harris-Benedict</option>
+            <option value="katch">Katch-McArdle</option>
+        </select>
+
+        <div id="lean-mass">
+            <label for="leanMass">Lean Body Mass (kg):</label>
+            <input type="number" id="leanMass" placeholder="Enter your lean body mass in kg">
+        </div>
 
         <label for="activity">Activity Level:</label>
         <select id="activity">
@@ -57,6 +70,15 @@
     <h3 id="result"></h3>
 
     <script>
+        function showLeanMassInput() {
+            var formula = document.getElementById('formula').value;
+            if (formula === "katch") {
+                document.getElementById('lean-mass').style.display = 'block';
+            } else {
+                document.getElementById('lean-mass').style.display = 'none';
+            }
+        }
+
         function calculateCalories() {
             var gender = document.getElementById('gender').value;
             var age = parseInt(document.getElementById('age').value);
@@ -64,23 +86,49 @@
             var height = parseInt(document.getElementById('height').value);
             var activity = parseFloat(document.getElementById('activity').value);
             var goal = document.getElementById('goal').value;
+            var formula = document.getElementById('formula').value;
+            var leanMass = parseFloat(document.getElementById('leanMass').value);
 
             var BMR;
 
-            if (gender === "male") {
-                BMR = 10 * weight + 6.25 * height - 5 * age + 5;
-            } else {
-                BMR = 10 * weight + 6.25 * height - 5 * age - 161;
+            // Mifflin-St Jeor Formula
+            if (formula === "mifflin") {
+                if (gender === "male") {
+                    BMR = 10 * weight + 6.25 * height - 5 * age + 5;
+                } else {
+                    BMR = 10 * weight + 6.25 * height - 5 * age - 161;
+                }
             }
 
+            // Harris-Benedict Formula
+            if (formula === "harris") {
+                if (gender === "male") {
+                    BMR = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+                } else {
+                    BMR = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+                }
+            }
+
+            // Katch-McArdle Formula (Uses Lean Body Mass)
+            if (formula === "katch") {
+                if (isNaN(leanMass) || leanMass <= 0) {
+                    alert("Please enter your lean body mass for the Katch-McArdle formula.");
+                    return;
+                }
+                BMR = 370 + (21.6 * leanMass);
+            }
+
+            // Calculate TDEE based on activity level
             var TDEE = BMR * activity;
 
+            // Adjust TDEE based on goal
             if (goal === "loss") {
-                TDEE = TDEE * 0.8;
+                TDEE = TDEE * 0.8;  // 20% calorie deficit for weight loss
             } else if (goal === "gain") {
-                TDEE = TDEE * 1.15;
+                TDEE = TDEE * 1.15;  // 15% calorie surplus for muscle gain
             }
 
+            // Display result
             document.getElementById('result').innerHTML = "Your daily calorie needs: " + Math.round(TDEE) + " kcal";
         }
     </script>
