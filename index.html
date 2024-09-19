@@ -6,23 +6,34 @@
     <title>Calorie Calculator</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
-        h2 { text-align: center; color: #333; }
+        h2, h3 { text-align: center; color: #333; }
         form { margin-top: 20px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select, button { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; }
         button { background-color: #28a745; color: white; border: none; cursor: pointer; }
         button:hover { background-color: #218838; }
         #result { text-align: center; font-size: 1.5em; color: #333; }
-        #lean-mass { display: none; } /* Hide lean mass input by default */
+        .slider-container { margin-bottom: 15px; }
+        .footer { text-align: center; margin-top: 40px; font-size: 1.1em; }
+        .footer a { color: #007bff; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .image-container { text-align: center; margin-bottom: 20px; }
+        .image-container img { max-width: 100%; height: auto; }
+        .table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        .table th, .table td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+        .table th { background-color: #f4f4f4; font-weight: bold; }
     </style>
 </head>
 <body>
+
+    <!-- Header with your name -->
+    <h1>Soleafit</h1>
 
     <h2>Calorie Calculator</h2>
 
     <form id="calorie-form">
         <label for="gender">Gender:</label>
-        <select id="gender">
+        <select id="gender" onchange="updateImage()">
             <option value="male">Male</option>
             <option value="female">Female</option>
         </select>
@@ -33,30 +44,35 @@
         <label for="weight">Weight (kg):</label>
         <input type="number" id="weight" placeholder="Enter your weight in kg" required>
 
-        <label for="height">Height (cm):</label>
-        <input type="number" id="height" placeholder="Enter your height in cm" required>
-
-        <label for="formula">Formula:</label>
-        <select id="formula" onchange="showLeanMassInput()">
-            <option value="mifflin">Mifflin-St Jeor</option>
-            <option value="harris">Harris-Benedict</option>
-            <option value="katch">Katch-McArdle</option>
-        </select>
-
-        <div id="lean-mass">
-            <label for="leanMass">Lean Body Mass (kg):</label>
-            <input type="number" id="leanMass" placeholder="Enter your lean body mass in kg">
+        <!-- Body Fat Percentage Slider -->
+        <div class="slider-container">
+            <label for="bodyFat">Body Fat Percentage:</label>
+            <input type="range" id="bodyFat" min="5" max="60" value="20" oninput="document.getElementById('fatValue').innerText = this.value + '%'; updateImage()">
+            <p>Selected Body Fat: <span id="fatValue">20%</span></p>
         </div>
 
-        <label for="activity">Activity Level:</label>
-        <select id="activity">
-            <option value="1.2">Sedentary (little to no exercise)</option>
-            <option value="1.375">Lightly active (light exercise 1-3 days/week)</option>
-            <option value="1.55">Moderately active (moderate exercise 3-5 days/week)</option>
-            <option value="1.725">Very active (hard exercise 6-7 days/week)</option>
-            <option value="1.9">Super active (hard exercise & physically demanding job)</option>
+        <!-- Workout Hours Per Week -->
+        <label for="workoutHours">How many hours do you workout each week?</label>
+        <select id="workoutHours">
+            <option value="1.2">0-1 hours</option>
+            <option value="1.375">1-3 hours</option>
+            <option value="1.55">3-5 hours</option>
+            <option value="1.725">6-8 hours</option>
+            <option value="1.9">8+ hours</option>
         </select>
 
+        <!-- Steps Per Day -->
+        <label for="stepsPerDay">How many steps do you average each day?</label>
+        <select id="stepsPerDay">
+            <option value="1.2">3,000-5,000</option>
+            <option value="1.3">5,000-7,000</option>
+            <option value="1.4">7,000-9,000</option>
+            <option value="1.5">9,000-11,000</option>
+            <option value="1.6">11,000-13,000</option>
+            <option value="1.7">13,000+</option>
+        </select>
+
+        <!-- Goal -->
         <label for="goal">Goal:</label>
         <select id="goal">
             <option value="loss">Weight Loss</option>
@@ -67,71 +83,91 @@
         <button type="button" onclick="calculateCalories()">Calculate</button>
     </form>
 
+    <!-- Display Image Based on Body Fat Percentage -->
+    <div class="image-container">
+        <img id="bodyFatImage" src="male-15-17.jpg" alt="Body Fat Image">
+    </div>
+
     <h3 id="result"></h3>
 
+    <!-- Progress Table -->
+    <div>
+        <h3>Calorie Adjustments</h3>
+        <table class="table">
+            <tr>
+                <th>Pace</th>
+                <th>Percentage of Body Weight Change/Week</th>
+                <th>Calorie Intake</th>
+            </tr>
+            <tr>
+                <td>Slow</td>
+                <td>0.5%</td>
+                <td id="slow"></td>
+            </tr>
+            <tr>
+                <td>Moderate</td>
+                <td>0.75%</td>
+                <td id="moderate"></td>
+            </tr>
+            <tr>
+                <td>Fast</td>
+                <td>1%</td>
+                <td id="fast"></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Footer with Instagram and Email Links -->
+    <div class="footer">
+        <p>Connect with me:</p>
+        <p>
+            <a href="https://instagram.com/soleafit" target="_blank">Instagram: @soleafit</a><br>
+            <a href="mailto:soleafit.pro@gmail.com">Email: soleafit.pro@gmail.com</a>
+        </p>
+    </div>
+
     <script>
-        function showLeanMassInput() {
-            var formula = document.getElementById('formula').value;
-            if (formula === "katch") {
-                document.getElementById('lean-mass').style.display = 'block';
+        // Function to update the image based on body fat percentage and gender
+        function updateImage() {
+            var gender = document.getElementById('gender').value;
+            var bodyFat = document.getElementById('bodyFat').value;
+            
+            // Determine the range of body fat percentages
+            var imageSrc = "";
+
+            if (gender === "male") {
+                if (bodyFat <= 14) imageSrc = "male-12-14.jpg";
+                else if (bodyFat <= 17) imageSrc = "male-15-17.jpg";
+                else if (bodyFat <= 20) imageSrc = "male-18-20.jpg";
+                // Add more ranges as necessary
             } else {
-                document.getElementById('lean-mass').style.display = 'none';
+                if (bodyFat <= 14) imageSrc = "female-12-14.jpg";
+                else if (bodyFat <= 17) imageSrc = "female-15-17.jpg";
+                else if (bodyFat <= 20) imageSrc = "female-18-20.jpg";
+                // Add more ranges as necessary
             }
+
+            // Update the image
+            document.getElementById('bodyFatImage').src = imageSrc;
         }
 
         function calculateCalories() {
             var gender = document.getElementById('gender').value;
             var age = parseInt(document.getElementById('age').value);
             var weight = parseInt(document.getElementById('weight').value);
-            var height = parseInt(document.getElementById('height').value);
-            var activity = parseFloat(document.getElementById('activity').value);
+            var bodyFat = parseFloat(document.getElementById('bodyFat').value);
+            var workoutHours = parseFloat(document.getElementById('workoutHours').value);
+            var stepsPerDay = parseFloat(document.getElementById('stepsPerDay').value);
             var goal = document.getElementById('goal').value;
-            var formula = document.getElementById('formula').value;
-            var leanMass = parseFloat(document.getElementById('leanMass').value);
 
-            var BMR;
+            // Combine workout and steps into activity level
+            var activity = (workoutHours + stepsPerDay) / 2;
 
-            // Mifflin-St Jeor Formula
-            if (formula === "mifflin") {
-                if (gender === "male") {
-                    BMR = 10 * weight + 6.25 * height - 5 * age + 5;
-                } else {
-                    BMR = 10 * weight + 6.25 * height - 5 * age - 161;
-                }
-            }
+            // Calculate Lean Body Mass (LBM) and BMR
+            var LBM = weight * (1 - bodyFat / 100);
+            var BMR = 370 + (21.6 * LBM);
 
-            // Harris-Benedict Formula
-            if (formula === "harris") {
-                if (gender === "male") {
-                    BMR = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
-                } else {
-                    BMR = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
-                }
-            }
-
-            // Katch-McArdle Formula (Uses Lean Body Mass)
-            if (formula === "katch") {
-                if (isNaN(leanMass) || leanMass <= 0) {
-                    alert("Please enter your lean body mass for the Katch-McArdle formula.");
-                    return;
-                }
-                BMR = 370 + (21.6 * leanMass);
-            }
-
-            // Calculate TDEE based on activity level
+            // Calculate TDEE (Total Daily Energy Expenditure)
             var TDEE = BMR * activity;
 
-            // Adjust TDEE based on goal
-            if (goal === "loss") {
-                TDEE = TDEE * 0.8;  // 20% calorie deficit for weight loss
-            } else if (goal === "gain") {
-                TDEE = TDEE * 1.15;  // 15% calorie surplus for muscle gain
-            }
-
-            // Display result
-            document.getElementById('result').innerHTML = "Your daily calorie needs: " + Math.round(TDEE) + " kcal";
-        }
-    </script>
-
-</body>
-</html>
+            // Adjust T
